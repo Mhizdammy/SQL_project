@@ -23,6 +23,7 @@ SET PropertyAddress = COALESCE(b.propertyaddress, a.propertyaddress)
 FROM nashvillehousing AS b 
 WHERE a.parcelid = b.parcelid AND a.uniqueid <> b.uniqueid AND a.propertyaddress IS NULL;
 
+
 -- Break out the address into individual columns (Address, City, State)
 
 SELECT SUBSTRING(PropertyAddress, 1, INSTR(PropertyAddress, ',')-1) AS Address, 
@@ -66,6 +67,7 @@ ADD ownerSplitState NVARCHAR(255) ;
 UPDATE nashvillehousing
 SET ownerSplitState = SUBSTRING(OwnerAddress, INSTR(OwnerAddress, 'TN') , LENGTH(OwnerAddress) );
 
+
 -- Change Y and N to Yes and No in 'Sold as Vacant' field
 SELECT DISTINCT SoldAsVacant, COUNT(*)
 FROM nashvillehousing
@@ -74,36 +76,35 @@ ORDER BY 2;
 
 
 SELECT SoldAsVacant,
-				CASE WHEN SoldAsVacant = 'Y' THEN 'Yes'
-							WHEN SoldAsVacant = 'N' THEN 'No'
-							ELSE SoldAsVacant
-							END AS edit
+		CASE WHEN SoldAsVacant = 'Y' THEN 'Yes'
+		     WHEN SoldAsVacant = 'N' THEN 'No'
+		     ELSE SoldAsVacant
+		     END AS edit		
 FROM nashvillehousing
 
 UPDATE nashvillehousing
 SET SoldAsVacant = CASE WHEN SoldAsVacant = 'Y' THEN 'Yes'
-							WHEN SoldAsVacant = 'N' THEN 'No'
-							ELSE SoldAsVacant
-							END
+			WHEN SoldAsVacant = 'N' THEN 'No'
+			ELSE SoldAsVacant
+			END
 
 --Let's remove duplicates
 
 SELECT * , ROW_NUMBER() OVER(PARTITION BY  ParcelID, 
-																											PropertySplitAddress,
-																											SalePrice,
-																											SaleDate,
-																											LegalReference
-																			ORDER BY         UniqueID) AS row_num																				
+						PropertySplitAddress,
+						SalePrice,
+						SaleDate,
+	ORDER BY         UniqueID) AS row_num																				
 FROM nashvillehousing;
 
 WITH RowNumCTE AS
-			( SELECT * , ROW_NUMBER() OVER(PARTITION BY  ParcelID, 
-																											PropertySplitAddress,
-																											SalePrice,
-																											SaleDate,
-																											LegalReference
-																			ORDER BY         UniqueID) AS row_num																				
-																FROM nashvillehousing)
+		( SELECT * , ROW_NUMBER() OVER(PARTITION BY  ParcelID, 
+								PropertySplitAddress,
+								SalePrice,
+								SaleDate,
+								LegalReference
+		  ORDER BY         UniqueID) AS row_num																				
+		  FROM nashvillehousing)
 															
 
 DELETE
